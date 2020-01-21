@@ -1,14 +1,14 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { GlobalStyle } from './global-style'
-import { Spinner } from './components/shared/spinner'
+import { FileUploadContainer } from './components/Container/FileUploadContainer';
 
 console.info(`⚛️ ${React.version}`)
 
 const App = () => (
   <>
     <GlobalStyle />
-    <Spinner />
+    <FileUploadContainer />
   </>
 )
 
