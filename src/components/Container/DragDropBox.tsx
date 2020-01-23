@@ -2,8 +2,21 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { ProgressIcon } from './ProgressIcon';
 
+const uploadFile = (file: any) => {
+    new Promise((resolve, reject) => {
+
+    })
+};
+
 const DragDropBox: FC = ({ className }) => {
     const [dragStatus, setDragStatus] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [url, setUrl] = useState();
+    const [authToken, setAuthToken] = useState(
+        window.location.href.includes('access_token=') && window.location.href.split('access_token=')[1].split('&')[0]);
+
+    const dragDropMsg = loading ? 'Uploading' : "Drag & drop here" + (url ? " to replace" : '');
+    const fileInputLabel = loading ? 'cancel' : 'Select file to ' + (url ? "replace" : 'upload');
 
     let fileInput: any;
     const onFileInputLabelClick = (evt: any) => {
@@ -12,43 +25,80 @@ const DragDropBox: FC = ({ className }) => {
         }
     }
 
-    const dragDropHandler = (ev :any)=>{
-        console.log('File(s) dropped');
-      
-        // Prevent default behavior (Prevent file from being opened)
+    const googleAuth = () => {
+        window.location.replace('https://accounts.google.com/o/oauth2/v2/auth?scope=https://www.googleapis.com/auth/devstorage.read_write&include_granted_scopes=true&state=pass-through value&redirect_uri=http://localhost:3000&response_type=token&client_id=818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com');
+    }
+
+    if (!authToken) {
+        googleAuth();
+        return;
+    }
+
+    const onCancelClick = (evt: any) => {
+        googleAuth();
+        setLoading(false);
+    }
+
+    const replaceUrl = (file: any) => {
+        fetch(
+            "https://photoslibrary.googleapis.com/v1/uploads",
+            {
+                method: "POST",
+                body: file,
+                headers: {
+                    "Authorization": "Bearer " + authToken,
+                    "Content-type": "application/octet-stream",
+                    "X-Goog-Upload-File-Name": "imagefile_test",
+                    "X-Goog-Upload-Protocol": "raw"
+                }
+            }
+        ).then(res => {
+            console.log("resssponse", res);
+            return res.json();
+        }).then(rJson => {
+            setUrl(URL.createObjectURL(file));
+        })
+
+    }
+
+    const dragDropHandler = (ev: any) => {
         ev.preventDefault();
 
-        setDragStatus(false)
-      
-        if (ev.dataTransfer.items) {
-          // Use DataTransferItemList interface to access the file(s)
-          for (var i = 0; i < ev.dataTransfer.items.length; i++) {
-            // If dropped items aren't files, reject them
-            if (ev.dataTransfer.items[i].kind === 'file') {
-              var file = ev.dataTransfer.items[i].getAsFile();
-              console.log('... file[' + i + '].name = ' + file.name);
-            }
-          }
-        } else {
-          // Use DataTransfer interface to access the file(s)
-          for (var i = 0; i < ev.dataTransfer.files.length; i++) {
-            console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
-          }
-        }
-      }
+        setLoading(true);
+        setDragStatus(false);
+
+        const file = ev.dataTransfer.files[0];
+        console.log(file.name, file);
+
+        replaceUrl(file);
+    }
+
+    const onFileInputChange = (ev: any) => {
+        ev.preventDefault();
+        setLoading(true);
+
+        const file = ev.target.files[0];
+        console.log(file.name, file);
+
+        replaceUrl(file);
+    }
 
     return (
         <div className={className}>
             <div className={'drag-over-indicator-container' + (dragStatus ? ' drag-over-indication' : '')}
-                    onDragLeave={evt => setDragStatus(false)}
-                    onDragOver={evt => {
-                        evt.preventDefault();setDragStatus(true)}}
-                    onDrop={dragDropHandler}>
-                <ProgressIcon />
-                <div className="drag-here-label">{'Drag & drop here'}</div>
+                onDragLeave={evt => setDragStatus(false)}
+                onDragOver={evt => {
+                    evt.preventDefault();
+                    setDragStatus(true);
+                }}
+                onDrop={dragDropHandler}>
+                <ProgressIcon loading={loading} url={url} />
+                <div className="drag-here-label">{dragDropMsg}</div>
                 <div className="or-label">{'- or -'}</div>
-                <div className="file-input-label" onClick={onFileInputLabelClick}>{'Select file to upload'}</div>
-                <input ref={input => fileInput = input} type="file" hidden />
+                <div
+                    className="file-input-label"
+                    onClick={loading ? onCancelClick : onFileInputLabelClick}>{fileInputLabel}</div>
+                <input ref={input => fileInput = input} onChange={onFileInputChange} type="file" accept="image/*" hidden />
             </div>
         </div>
     )
