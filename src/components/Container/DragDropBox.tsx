@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { ProgressIcon } from './ProgressIcon';
 
@@ -12,8 +12,11 @@ const DragDropBox: FC = ({ className }) => {
     const [dragStatus, setDragStatus] = useState(false);
     const [loading, setLoading] = useState(false);
     const [url, setUrl] = useState();
-    const [authToken, setAuthToken] = useState(
-        window.location.href.includes('access_token=') && window.location.href.split('access_token=')[1].split('&')[0]);
+    const [authToken, setAuthToken] = useState();
+    const [fileId, setFileId] = useState();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const [paramCode, setParamCode] = useState(urlParams.get('code') || '');
 
     const dragDropMsg = loading ? 'Uploading' : "Drag & drop here" + (url ? " to replace" : '');
     const fileInputLabel = loading ? 'cancel' : 'Select file to ' + (url ? "replace" : 'upload');
@@ -25,43 +28,84 @@ const DragDropBox: FC = ({ className }) => {
         }
     }
 
-    const googleAuth = () => {
-        window.location.replace('https://accounts.google.com/o/oauth2/v2/auth?scope=https://www.googleapis.com/auth/devstorage.read_write&include_granted_scopes=true&state=pass-through value&redirect_uri=http://localhost:3000&response_type=token&client_id=818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com');
+    const fetchToken = () => {
+        const redirect_uri = "http://localhost:3000" // replace with your redirect_uri;
+        const scope = "https://www.googleapis.com/auth/drive";
+        const client_secret = "0UB8wZRCyQKhh5enYDZMwM-c"; // replace with your client secret
+        const clientId = "818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com"// replace it with your client id;
+
+        let formData = new FormData();
+        formData.append('code', paramCode);
+        formData.append('redirect_uri', redirect_uri);
+        formData.append('client_secret', client_secret);
+        formData.append('client_id', clientId);
+        formData.append('scope', scope);
+        formData.append('grant_type', 'authorization_code');
+
+        fetch("https://www.googleapis.com/oauth2/v4/token", {
+            method: 'post',
+            body: formData
+        }).then((res: any) => res.json()).then((resultData: any) => {
+            setAuthToken(resultData.access_token);
+        })
     }
 
-    if (!authToken) {
+    const googleAuth = () => {
+        const redirect_uri = "http://localhost:3000" // replace with your redirect_uri;
+        const scope = "https://www.googleapis.com/auth/drive";
+        var clientId = "818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com"// replace it with your client id;
+
+        let url = "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=" + redirect_uri
+            + "&prompt=consent&response_type=code&client_id=" + clientId + "&scope=" + scope
+            + "&access_type=offline";
+        window.location.replace(url);
+    }
+
+    if (!paramCode) {
         googleAuth();
         return;
+    } else if (!authToken) {
+        setAuthToken('dummy');
     }
 
+    useEffect(() => {
+        if (authToken === 'dummy') {
+            fetchToken()
+        }
+    }, [authToken])
+
     const onCancelClick = (evt: any) => {
-        googleAuth();
+        //googleAuth();
         setLoading(false);
     }
 
-    const replaceUrl = (file: any) => {
+    const replaceUrl = (file: any, fileId: string) => {
+        var formData = new FormData();
+
+        formData.append("file", file, file.name);
+        formData.append("upload_file", "true");
+
         fetch(
-            "https://photoslibrary.googleapis.com/v1/uploads",
+            "https://www.googleapis.com/upload/drive/v2/files" + (fileId ? '/' + fileId : ''),
             {
-                method: "POST",
-                body: file,
+                method: fileId ? 'PUT' : "POST",
+                body: formData,
                 headers: {
-                    "Authorization": "Bearer " + authToken,
-                    "Content-type": "application/octet-stream",
-                    "X-Goog-Upload-File-Name": "imagefile_test",
-                    "X-Goog-Upload-Protocol": "raw"
+                    "Authorization": "Bearer " + authToken
                 }
             }
         ).then(res => {
             console.log("resssponse", res);
             return res.json();
         }).then(rJson => {
+            setFileId(rJson.id);
+            setLoading(false);
             setUrl(URL.createObjectURL(file));
         })
 
     }
 
-    const dragDropHandler = (ev: any) => {
+    const dragDropHandler = (ev: any, fileId: string) => {
         ev.preventDefault();
 
         setLoading(true);
@@ -70,17 +114,17 @@ const DragDropBox: FC = ({ className }) => {
         const file = ev.dataTransfer.files[0];
         console.log(file.name, file);
 
-        replaceUrl(file);
+        replaceUrl(file, fileId);
     }
 
-    const onFileInputChange = (ev: any) => {
+    const onFileInputChange = (ev: any, fileId: string) => {
         ev.preventDefault();
         setLoading(true);
 
         const file = ev.target.files[0];
         console.log(file.name, file);
 
-        replaceUrl(file);
+        replaceUrl(file, fileId);
     }
 
     return (
@@ -91,14 +135,14 @@ const DragDropBox: FC = ({ className }) => {
                     evt.preventDefault();
                     setDragStatus(true);
                 }}
-                onDrop={dragDropHandler}>
+                onDrop={(event) => dragDropHandler(event, fileId)}>
                 <ProgressIcon loading={loading} url={url} />
                 <div className="drag-here-label">{dragDropMsg}</div>
                 <div className="or-label">{'- or -'}</div>
                 <div
                     className="file-input-label"
                     onClick={loading ? onCancelClick : onFileInputLabelClick}>{fileInputLabel}</div>
-                <input ref={input => fileInput = input} onChange={onFileInputChange} type="file" accept="image/*" hidden />
+                <input ref={input => fileInput = input} onChange={(event) => onFileInputChange(event, fileId)} type="file" accept="image/*" hidden />
             </div>
         </div>
     )
