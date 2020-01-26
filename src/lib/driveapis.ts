@@ -1,3 +1,15 @@
+
+function handleResponse(res: any) {
+    if (res.ok)
+        return res.json()
+    else if (res.status === 400) {
+        throw new Error("Bad Request")
+    }
+    else if (res.status === 403) {
+        throw new Error("Unauthorised")
+    } else throw Error(res.status)
+}
+
 export const fetchToken = (paramCode: string) => {
     const redirect_uri = "http://localhost:3000"
     const scope = "https://www.googleapis.com/auth/drive"
@@ -25,20 +37,9 @@ export const fetchToken = (paramCode: string) => {
     })
 }
 
-function handleResponse(res: any) {
-    if (res.ok)
-        return res.json()
-    else if (res.status === 400) {
-        throw new Error("Bad Request")
-    }
-    else if (res.status === 403) {
-        throw new Error("Unauthorised")
-    }
-}
-
 export const googleAuth = () => {
-    const redirect_uri = "http://localhost:3000" ]
-    const scope = "https://www.googleapis.com/auth/drive";
+    const redirect_uri = "http://localhost:3000"
+    const scope = "https://www.googleapis.com/auth/drive"
     var clientId = "818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com"
 
     let url = "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=" + redirect_uri
@@ -66,7 +67,7 @@ export const uploadFile = (authToken: any, controller: AbortController, file: an
                 }
             }
         ).then(handleResponse).then(rJson => {
-            resolve(rJson.id);
+            resolve(rJson.id)
         }).catch(err => alert(err))
     })
 }

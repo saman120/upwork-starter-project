@@ -5,7 +5,7 @@ import { fetchToken, googleAuth, uploadFile } from '../../lib/driveapis'
 
 type DragDropBoxType = {
     url: string,
-    onChange: (url: string) => void
+    onChange: (url: string | undefined) => void
 }
 
 const DragDropBox: FC<DragDropBoxType> = (props) => {
@@ -13,7 +13,8 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
     const [loading, setLoading] = useState<boolean>(false)
     let [authToken, setAuthToken] = useState<string>()
     const [fileId, setFileId] = useState<string>()
-    const [controller] = useState<AbortController>(new AbortController())
+    let [prevUrl, setPrevUrl] = useState<string>()
+    const [controller, setController] = useState<AbortController | undefined>()
     const [paramCode] = useState<string>(new URLSearchParams(window.location.search).get('code') || '')
 
     useEffect(() => {
@@ -31,17 +32,34 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
 
     const onCancelClick = (evt: any) => {
         setLoading(false)
-        controller.abort()
+        if (controller)
+            controller.abort()
+        props.onChange(prevUrl);
     }
 
-    const fetchTokenAndUpload = (fileId: string | undefined, file: object) => {
+    const fetchTokenAndUpload = (fileId: string | undefined, file: any) => {
+        if (file.size / 1024 / 1924 > 20) {
+            alert("Maximum upload file size 2mb")
+            return false
+        } else if (!paramCode) {
+            if (confirm("Need to login to your google drive account to test demo")) {
+                googleAuth()
+            }
+
+            return false
+        }
+
+        setLoading(true)
+        setPrevUrl(props.url)
         props.onChange(URL.createObjectURL(file))
+        let myRequestController = new AbortController();
+        setController(myRequestController);
 
         if (!authToken) {
             fetchToken(paramCode)
                 .then((authToken: string) => {
                     setAuthToken(authToken)
-                    uploadFile(authToken, controller, file, fileId)
+                    uploadFile(authToken, myRequestController, file, fileId)
                         .then((newFileId: string) => {
                             setFileId(newFileId)
                             setLoading(false)
@@ -52,7 +70,7 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
                     }
                 })
         } else {
-            uploadFile(authToken, controller, file, fileId)
+            uploadFile(authToken, myRequestController, file, fileId)
                 .then((newFileId: string) => {
                     setFileId(newFileId)
                     setLoading(false)
@@ -62,8 +80,8 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
 
     const dragDropHandler = (ev: any, fileId: string | undefined) => {
         ev.preventDefault()
+        if (!ev.dataTransfer.files) return false
 
-        setLoading(true)
         setDragStatus(false)
 
         const file = ev.dataTransfer.files[0]
@@ -72,11 +90,13 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
 
     const onFileInputChange = (ev: any, fileId: string | undefined) => {
         ev.preventDefault()
-
-        setLoading(true)
+        if (!ev.target.files || !ev.target.files[0]) {
+            return false
+        }
 
         const file = ev.target.files[0]
         fetchTokenAndUpload(fileId, file)
+        ev.target.value = null
     }
 
     const dragDropMsg = loading ? 'Uploading' : "Drag & drop here" + (props.url ? " to replace" : '')
