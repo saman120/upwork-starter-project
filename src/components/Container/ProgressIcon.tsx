@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
+import fileIcon from '../../icons/file-icon.svg'
 
 type ProgressIconType = {
     loading: boolean,
@@ -10,7 +11,7 @@ const ProgressIcon: FC<ProgressIconType> = ({ className, loading, url }) => (
     <div className={className}>
         <div className="progress-icon-elipse" />
         <div className='progress-image-container'>
-            <img src={url || require('../../icons/file-icon.svg')} />
+            <img src={url || fileIcon} />
         </div>
     </div>
 )
