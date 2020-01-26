@@ -10,6 +10,10 @@ type ProgressEclipseIconType = {
     loading: boolean
 }
 
+type ImageContainerType = {
+    url: string
+}
+
 const ProgressElipse = styled.div<ProgressEclipseIconType>`
     position:absolute;
     width: 80px;
@@ -32,9 +36,6 @@ const ProgressElipse = styled.div<ProgressEclipseIconType>`
         100% { transform: rotate(360deg); }
     }
 `
-type ImageContainerType = {
-    url: string
-}
 
 const ImageContainer = styled.div<ImageContainerType>`
     position:absolute;

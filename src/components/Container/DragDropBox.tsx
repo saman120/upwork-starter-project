@@ -1,134 +1,85 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
-import { ProgressIcon } from './ProgressIcon';
+import { ProgressIcon } from './ProgressIcon'
+import { fetchToken, googleAuth, uploadFile } from '../../lib/driveapis'
 
-const uploadFile = (file: any) => {
-    new Promise((resolve, reject) => {
+type DragDropBoxType = {
+    url: string,
+    onChange: (url: string) => void
+}
 
+const DragDropBox: FC<DragDropBoxType> = (props) => {
+    const [dragStatus, setDragStatus] = useState(false)
+    const [loading, setLoading] = useState(false)
+    let [authToken, setAuthToken] = useState()
+    const [fileId, setFileId] = useState()
+    const [controller] = useState(new AbortController())
+    const [paramCode] = useState(new URLSearchParams(window.location.search).get('code'))
+
+    useEffect(() => {
+        if (!paramCode && confirm("Need to login to your google drive account to test demo")) {
+            googleAuth()
+        }
     })
-};
-
-const DragDropBox: FC = ({ className }) => {
-    const [dragStatus, setDragStatus] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [url, setUrl] = useState();
-    const [authToken, setAuthToken] = useState();
-    const [fileId, setFileId] = useState();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const [paramCode, setParamCode] = useState(urlParams.get('code') || '');
-
-    const dragDropMsg = loading ? 'Uploading' : "Drag & drop here" + (url ? " to replace" : '');
-    const fileInputLabel = loading ? 'cancel' : 'Select file to ' + (url ? "replace" : 'upload');
 
     let fileInput: any;
     const onFileInputLabelClick = (evt: any) => {
         if (fileInput) {
-            fileInput.click();
+            fileInput.click()
         }
     }
-
-    const fetchToken = () => {
-        const redirect_uri = "http://localhost:3000" // replace with your redirect_uri;
-        const scope = "https://www.googleapis.com/auth/drive";
-        const client_secret = "0UB8wZRCyQKhh5enYDZMwM-c"; // replace with your client secret
-        const clientId = "818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com"// replace it with your client id;
-
-        let formData = new FormData();
-        formData.append('code', paramCode);
-        formData.append('redirect_uri', redirect_uri);
-        formData.append('client_secret', client_secret);
-        formData.append('client_id', clientId);
-        formData.append('scope', scope);
-        formData.append('grant_type', 'authorization_code');
-
-        fetch("https://www.googleapis.com/oauth2/v4/token", {
-            method: 'post',
-            body: formData
-        }).then((res: any) => res.json()).then((resultData: any) => {
-            setAuthToken(resultData.access_token);
-        })
-    }
-
-    const googleAuth = () => {
-        const redirect_uri = "http://localhost:3000" // replace with your redirect_uri;
-        const scope = "https://www.googleapis.com/auth/drive";
-        var clientId = "818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com"// replace it with your client id;
-
-        let url = "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=" + redirect_uri
-            + "&prompt=consent&response_type=code&client_id=" + clientId + "&scope=" + scope
-            + "&access_type=offline";
-        window.location.replace(url);
-    }
-
-    if (!paramCode) {
-        googleAuth();
-        return;
-    } else if (!authToken) {
-        setAuthToken('dummy');
-    }
-
-    useEffect(() => {
-        if (authToken === 'dummy') {
-            fetchToken()
-        }
-    }, [authToken])
 
     const onCancelClick = (evt: any) => {
-        //googleAuth();
-        setLoading(false);
+        setLoading(false)
+        controller.abort()
     }
 
-    const replaceUrl = (file: any, fileId: string) => {
-        var formData = new FormData();
-
-        formData.append("file", file, file.name);
-        formData.append("upload_file", "true");
-
-        fetch(
-            "https://www.googleapis.com/upload/drive/v2/files" + (fileId ? '/' + fileId : ''),
-            {
-                method: fileId ? 'PUT' : "POST",
-                body: formData,
-                headers: {
-                    "Authorization": "Bearer " + authToken
-                }
-            }
-        ).then(res => {
-            console.log("resssponse", res);
-            return res.json();
-        }).then(rJson => {
-            setFileId(rJson.id);
-            setLoading(false);
-            setUrl(URL.createObjectURL(file));
-        })
-
+    const fetchTokenAndUpload = (fileId: string, file: object) => {
+        if (!authToken) {
+            fetchToken(paramCode)
+                .then((authToken: string) => {
+                    setAuthToken(authToken)
+                    uploadFile(authToken, controller, file, fileId)
+                        .then((newFileId: string) => {
+                            setFileId(newFileId)
+                            setLoading(false)
+                            props.onChange(URL.createObjectURL(file))
+                        })
+                })
+        } else {
+            uploadFile(authToken, controller, file, fileId)
+                .then((newFileId: string) => {
+                    setFileId(newFileId)
+                    setLoading(false)
+                    props.onChange(URL.createObjectURL(file))
+                })
+        }
     }
 
     const dragDropHandler = (ev: any, fileId: string) => {
-        ev.preventDefault();
+        ev.preventDefault()
 
-        setLoading(true);
-        setDragStatus(false);
+        setLoading(true)
+        setDragStatus(false)
 
-        const file = ev.dataTransfer.files[0];
-        console.log(file.name, file);
-
-        replaceUrl(file, fileId);
+        const file = ev.dataTransfer.files[0]
+        fetchTokenAndUpload(fileId, file)
     }
 
     const onFileInputChange = (ev: any, fileId: string) => {
-        ev.preventDefault();
-        setLoading(true);
+        ev.preventDefault()
 
-        const file = ev.target.files[0];
-        console.log(file.name, file);
+        setLoading(true)
 
-        replaceUrl(file, fileId);
+        const file = ev.target.files[0]
+        fetchTokenAndUpload(fileId, file)
     }
 
+    const dragDropMsg = loading ? 'Uploading' : "Drag & drop here" + (props.url ? " to replace" : '')
+    const fileInputLabel = loading ? 'cancel' : 'Select file to ' + (props.url ? "replace" : 'upload')
+
     return (
-        <div className={className}>
+        <div className={props.className}>
             <div className={'drag-over-indicator-container' + (dragStatus ? ' drag-over-indication' : '')}
                 onDragLeave={evt => setDragStatus(false)}
                 onDragOver={evt => {
@@ -136,7 +87,7 @@ const DragDropBox: FC = ({ className }) => {
                     setDragStatus(true);
                 }}
                 onDrop={(event) => dragDropHandler(event, fileId)}>
-                <ProgressIcon loading={loading} url={url} />
+                <ProgressIcon loading={loading} url={props.url} />
                 <div className="drag-here-label">{dragDropMsg}</div>
                 <div className="or-label">{'- or -'}</div>
                 <div

@@ -1,7 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import { LogoContainer } from './LogoContainer';
-import { ProgressIcon } from './ProgressIcon';
 import { DragDropBox } from './DragDropBox';
 
 const MainContainer = styled.div`
@@ -21,11 +20,14 @@ const MainContainer = styled.div`
 }
 `
 const FileUploadContainer: FC = ({ }) => {
+
+    const [url, setUrl] = useState();
+
     return (
         <MainContainer>
             <LogoContainer />
-            <div className="horizontal-line"/>
-            <DragDropBox />
+            <div className="horizontal-line" />
+            <DragDropBox url={url} onChange={(url) => setUrl(url)} />
         </MainContainer>
     )
 }
