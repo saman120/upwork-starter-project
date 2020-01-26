@@ -44,7 +44,7 @@ const ImageContainer = styled.div<ImageContainerType>`
     margin: 17.78px 25.19px 16.3px 25.19px;
     background-position: center;
     background-size: contain;
-    background: ${props => props.url && "url('" + props.url + "')"}
+    background: ${props => props.url && "url('" + props.url + "')"};
 `
 
 const ProgressIcon: FC<ProgressIconType> = ({ className, loading, url }) => (

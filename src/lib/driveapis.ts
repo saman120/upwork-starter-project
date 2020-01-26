@@ -16,16 +16,30 @@ export const fetchToken = (paramCode: string) => {
         fetch("https://www.googleapis.com/oauth2/v4/token", {
             method: 'post',
             body: formData
-        }).then((res: any) => res.json()).then((resultData: any) => {
+        }).then(handleResponse).then((resultData: any) => {
             resolve(resultData.access_token)
+        }).catch(resError => {
+            alert(resError)
+            throw new Error()
         })
     })
 }
 
+function handleResponse(res: any) {
+    if (res.ok)
+        return res.json()
+    else if (res.status === 400) {
+        throw new Error("Bad Request")
+    }
+    else if (res.status === 403) {
+        throw new Error("Unauthorised")
+    }
+}
+
 export const googleAuth = () => {
-    const redirect_uri = "http://localhost:3000" // replace with your redirect_uri;
+    const redirect_uri = "http://localhost:3000" ]
     const scope = "https://www.googleapis.com/auth/drive";
-    var clientId = "818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com"// replace it with your client id;
+    var clientId = "818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com"
 
     let url = "https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=" + redirect_uri
         + "&prompt=consent&response_type=code&client_id=" + clientId + "&scope=" + scope
@@ -33,7 +47,7 @@ export const googleAuth = () => {
     window.location.replace(url);
 }
 
-export const uploadFile = (authToken: any, controller: AbortController, file: any, fileId: string) => {
+export const uploadFile = (authToken: any, controller: AbortController, file: any, fileId: string | undefined) => {
     const { signal } = controller
 
     let formData = new FormData()
@@ -51,10 +65,8 @@ export const uploadFile = (authToken: any, controller: AbortController, file: an
                     "Authorization": "Bearer " + authToken
                 }
             }
-        ).then(res => {
-            return res.json()
-        }).then(rJson => {
+        ).then(handleResponse).then(rJson => {
             resolve(rJson.id);
-        })
+        }).catch(err => alert(err))
     })
 }

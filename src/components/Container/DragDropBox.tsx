@@ -9,12 +9,12 @@ type DragDropBoxType = {
 }
 
 const DragDropBox: FC<DragDropBoxType> = (props) => {
-    const [dragStatus, setDragStatus] = useState(false)
-    const [loading, setLoading] = useState(false)
-    let [authToken, setAuthToken] = useState()
-    const [fileId, setFileId] = useState()
-    const [controller] = useState(new AbortController())
-    const [paramCode] = useState(new URLSearchParams(window.location.search).get('code'))
+    const [dragStatus, setDragStatus] = useState<boolean>(false)
+    const [loading, setLoading] = useState<boolean>(false)
+    let [authToken, setAuthToken] = useState<string>()
+    const [fileId, setFileId] = useState<string>()
+    const [controller] = useState<AbortController>(new AbortController())
+    const [paramCode] = useState<string>(new URLSearchParams(window.location.search).get('code') || '')
 
     useEffect(() => {
         if (!paramCode && confirm("Need to login to your google drive account to test demo")) {
@@ -22,7 +22,7 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
         }
     })
 
-    let fileInput: any;
+    let fileInput: any
     const onFileInputLabelClick = (evt: any) => {
         if (fileInput) {
             fileInput.click()
@@ -34,7 +34,9 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
         controller.abort()
     }
 
-    const fetchTokenAndUpload = (fileId: string, file: object) => {
+    const fetchTokenAndUpload = (fileId: string | undefined, file: object) => {
+        props.onChange(URL.createObjectURL(file))
+
         if (!authToken) {
             fetchToken(paramCode)
                 .then((authToken: string) => {
@@ -43,20 +45,22 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
                         .then((newFileId: string) => {
                             setFileId(newFileId)
                             setLoading(false)
-                            props.onChange(URL.createObjectURL(file))
                         })
+                }).catch(err => {
+                    if (confirm("Token expired: Need to relogin to your google drive account")) {
+                        googleAuth()
+                    }
                 })
         } else {
             uploadFile(authToken, controller, file, fileId)
                 .then((newFileId: string) => {
                     setFileId(newFileId)
                     setLoading(false)
-                    props.onChange(URL.createObjectURL(file))
                 })
         }
     }
 
-    const dragDropHandler = (ev: any, fileId: string) => {
+    const dragDropHandler = (ev: any, fileId: string | undefined) => {
         ev.preventDefault()
 
         setLoading(true)
@@ -66,7 +70,7 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
         fetchTokenAndUpload(fileId, file)
     }
 
-    const onFileInputChange = (ev: any, fileId: string) => {
+    const onFileInputChange = (ev: any, fileId: string | undefined) => {
         ev.preventDefault()
 
         setLoading(true)
