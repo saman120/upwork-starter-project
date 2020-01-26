@@ -6,44 +6,52 @@ type ProgressIconType = {
     url: string
 }
 
-type ProgressEclipseIconType = {
-    loading: boolean
-}
+const ProgressIcon: FC<ProgressIconType> = ({ className, loading, url }) => (
+    <div className={className}>
+        <div className="progress-icon-elipse" />
+        <div className='progress-image-container'>
+            <img src={url || require('../../icons/file-icon.svg')} />
+        </div>
+    </div>
+)
 
-type ImageContainerType = {
-    url: string
-}
-
-const ProgressElipse = styled.div<ProgressEclipseIconType>`
-    position:absolute;
-    width: 80px;
+const StyledProgressIcon = styled(ProgressIcon)`
     height: 80px;
-    border-radius: 50%;
+    width: 80px;
+    align-self: center;
+    margin: 0 auto;
 
-    /* STD W */
+    .progress-icon-elipse{
+        position:absolute;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
 
-    background: #FFFFFF;
-    /* B80 */
+        /* STD W */
 
-    border: 1px solid #D1E3F8;
-    box-sizing: border-box;
+        background: #FFFFFF;
+        /* B80 */
 
-    border-top: ${props => props.loading && '2px solid #3498db'}; /* Blue */
-    animation: ${props => props.loading && 'spin 2s linear infinite'};
+        border: 1px solid #D1E3F8;
+        box-sizing: border-box;
+
+        border-top: ${props => props.loading && '2px solid #3498db'}; /* Blue */
+        animation: ${props => props.loading && 'spin 2s linear infinite'};
+    }
 
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-`
 
-const ImageContainer = styled.div<ImageContainerType>`
-    position:absolute;
-    width: ${props => props.url ? '80px' : '29.63px'};
-    height: ${props => props.url ? '80px' : '45.93px'};
-    padding: ${props => props.url ? '12px' : '17.78px 25.19px 16.3px 25.19px'};
-    background-position: center;
-    background-size: contain;
+    .progress-image-container{
+        position:absolute;
+        width: ${props => props.url ? '80px' : '29.63px'};
+        height: ${props => props.url ? '80px' : '45.93px'};
+        padding: ${props => props.url ? '12px' : '17.78px 25.19px 16.3px 25.19px'};
+        background-position: center;
+        background-size: contain;
+    }
 
     img{
         position: absolute;
@@ -55,22 +63,6 @@ const ImageContainer = styled.div<ImageContainerType>`
         max-width: ${props => props.url ? '55px' : '29.63px'};
         max-height: ${props => props.url ? '55px' : '45.93px'};
     }
-`
-
-const ProgressIcon: FC<ProgressIconType> = ({ className, loading, url }) => (
-    <div className={className}>
-        <ProgressElipse className="progress-icon-elipse" loading={loading} />
-        <ImageContainer url={url}>
-            <img src={url || require('../../icons/file-icon.svg')} />
-        </ImageContainer>
-    </div>
-)
-
-const StyledProgressIcon = styled(ProgressIcon)`
-        height: 80px;
-        width: 80px;
-        align-self: center;
-        margin: 0 auto;
 `
 
 export { StyledProgressIcon as ProgressIcon }
