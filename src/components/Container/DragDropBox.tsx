@@ -64,10 +64,6 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
                             setFileId(newFileId)
                             setLoading(false)
                         })
-                }).catch(err => {
-                    if (confirm("Token expired: Need to relogin to your google drive account")) {
-                        googleAuth()
-                    }
                 })
         } else {
             uploadFile(authToken, myRequestController, file, fileId)
