@@ -20,15 +20,13 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
   )
 
   useEffect(() => {
-    if (
-      !paramCode &&
-      confirm(
-        "Sorry I don't have a credit card so couldn't create google bucket, please login to your google drive account to test demo"
-      )
-    ) {
+    const msg =
+      "Sorry I don't have a credit card so couldn't create google bucket," +
+      ' please login to your google drive account to test demo'
+    if (!paramCode && confirm(msg)) {
       googleAuth()
     }
-  })
+  }, [paramCode])
 
   let fileInput: any
   const onFileInputLabelClick = () => {
@@ -83,11 +81,18 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
 
   const dragDropHandler = (ev: any, fileId: string | undefined) => {
     ev.preventDefault()
-    if (!ev.dataTransfer.files) return false
-
     setDragStatus(false)
 
+    if (
+      !ev.dataTransfer.files ||
+      !ev.dataTransfer.files[0].type.includes('image')
+    ) {
+      alert('Only file type image allowed')
+      return false
+    }
     const file = ev.dataTransfer.files[0]
+    console.log(file)
+
     fetchTokenAndUpload(fileId, file)
   }
 
