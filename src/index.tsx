@@ -1,16 +1,20 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ReactDOM from 'react-dom'
 import { GlobalStyle } from './global-style'
-import { Spinner } from './components/shared/spinner'
+import { FileUploader } from './components/Container/FileUploader'
 
 console.info(`⚛️ ${React.version}`)
 
-const App = () => (
-  <>
-    <GlobalStyle />
-    <Spinner />
-  </>
-)
+const App = () => {
+  const [url, setUrl] = useState()
+
+  return (
+    <>
+      <GlobalStyle />
+      <FileUploader url={url} onChange={(url: string) => setUrl(url)} />
+    </>
+  )
+}
 
 ReactDOM.render(<App />, document.getElementById('root'))
 
