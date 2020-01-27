@@ -18,7 +18,7 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
     const [paramCode] = useState<string>(new URLSearchParams(window.location.search).get('code') || '')
 
     useEffect(() => {
-        if (!paramCode && confirm("Need to login to your google drive account to test demo")) {
+        if (!paramCode && confirm("Sorry I don't have a credit card so couldn't create google bucket, please login to your google drive account to test demo")) {
             googleAuth()
         }
     })
@@ -42,7 +42,7 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
             alert("Maximum upload file size 2mb")
             return false
         } else if (!paramCode) {
-            if (confirm("Need to login to your google drive account to test demo")) {
+            if (confirm("Please login to your google drive account to test demo")) {
                 googleAuth()
             }
 
