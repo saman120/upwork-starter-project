@@ -90,9 +90,8 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
       alert('Only file type image allowed')
       return false
     }
-    const file = ev.dataTransfer.files[0]
-    console.log(file)
 
+    const file = ev.dataTransfer.files[0]
     fetchTokenAndUpload(fileId, file)
   }
 
