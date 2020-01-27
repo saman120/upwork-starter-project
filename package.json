@@ -26,7 +26,6 @@
     "dev": "yarn clean && parcel src/index.html -p 3000",
     "lint": "tsc --noEmit --skipLibCheck && eslint \"src/**/*.{js,ts,tsx}\" --max-warnings=0",
     "format": "eslint 'src/**/*.{js,ts,tsx}' --max-warnings=0 --fix",
-    "cleanLinux": "rm -rf .cache && rm -rf ./dist/* && mkdir -p ./dist",
-    "clean": "if exist .cache rd /s /q .cache && if exist ./dist rd /s /q ./dist/* && mkdir -p ./dist"
+    "clean": "rm -rf .cache && rm -rf ./dist/* && mkdir -p ./dist"
   }
 }
