@@ -21,7 +21,7 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
 
   useEffect(() => {
     const msg =
-      'Please login to your google drive account to test the full demo'
+      'Please login to your google drive account to test the full demo Or just view the UI components'
     if (!paramCode && confirm(msg)) {
       googleAuth()
     }

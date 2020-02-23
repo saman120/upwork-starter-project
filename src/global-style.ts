@@ -1,5 +1,4 @@
 import { createGlobalStyle } from 'styled-components'
-import { FontWeights, Colors } from './lib/style-guide'
 
 export const GlobalStyle = createGlobalStyle`
   * {
@@ -12,10 +11,9 @@ export const GlobalStyle = createGlobalStyle`
 
   body, input {
     font-family: proxima-nova, sans-serif;
-    font-weight: ${FontWeights.PR};
+    font-weight: 400;
     font-size: 14px;
     line-height: 1.4rem;
-    color: ${Colors.TX1};
   }
 
   svg, img {
@@ -25,6 +23,6 @@ export const GlobalStyle = createGlobalStyle`
   #root {
     display: flex;
     min-height: 100vh;
-    background: ${Colors.BG3};
+    background: 'white';
   }
 `
