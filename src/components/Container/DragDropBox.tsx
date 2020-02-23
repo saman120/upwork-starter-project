@@ -21,8 +21,7 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
 
   useEffect(() => {
     const msg =
-      "Sorry I don't have a credit card so couldn't create google bucket," +
-      ' please login to your google drive account to test demo'
+      'Please login to your google drive account to test the full demo'
     if (!paramCode && confirm(msg)) {
       googleAuth()
     }
@@ -43,7 +42,7 @@ const DragDropBox: FC<DragDropBoxType> = (props) => {
 
   const fetchTokenAndUpload = (fileId: string | undefined, file: any) => {
     if (file.size / 1024 / 1924 > 20) {
-      alert('Maximum upload file size 2mb')
+      alert('Maximum upload file size 20MB')
       return false
     } else if (!paramCode) {
       if (confirm('Please login to your google drive account to test demo')) {
@@ -164,8 +163,6 @@ const StyledDragDropBox = styled(DragDropBox)`
 
   .drag-over-indication {
     background: #f5f9ff;
-    /* Accord Blue */
-
     border: 1px dashed #4991e5;
     box-sizing: border-box;
   }
@@ -252,9 +249,6 @@ const StyledDragDropBox = styled(DragDropBox)`
     /* identical to box height */
 
     text-align: center;
-
-    /* Accord Blue */
-
     color: #4991e5;
   }
 

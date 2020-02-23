@@ -5,13 +5,14 @@ function handleResponse(res: any) {
   else throw Error(res.statusText)
 }
 
-export const fetchToken = (paramCode: string) => {
-  const redirectUri = 'http://localhost:3000'
-  const scope = 'https://www.googleapis.com/auth/drive'
-  const clientSecret = '0UB8wZRCyQKhh5enYDZMwM-c'
-  const clientId =
-    '818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com'
+const redirectUri = 'http://localhost:3000'
+const clientSecret = 'wZtNvVC9YmxSCBB61AhEjFpj'
+const clientId =
+  '818757178082-rh47f1isl4q9kvdfaobqrfukg094if7j.apps.googleusercontent.com'
 
+const scope = 'https://www.googleapis.com/auth/drive'
+
+export const fetchToken = (paramCode: string) => {
   const formData = new FormData()
   formData.append('code', paramCode)
   formData.append('redirect_uri', redirectUri)
@@ -37,11 +38,6 @@ export const fetchToken = (paramCode: string) => {
 }
 
 export const googleAuth = () => {
-  const redirectUri = 'http://localhost:3000'
-  const scope = 'https://www.googleapis.com/auth/drive'
-  const clientId =
-    '818757178082-t1eu7hnakaur4ddpud8q5n1r495t0hje.apps.googleusercontent.com'
-
   const url =
     'https://accounts.google.com/o/oauth2/v2/auth' +
     '?redirect_uri=' +

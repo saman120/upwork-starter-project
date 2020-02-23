@@ -3,8 +3,8 @@ import styled from 'styled-components'
 
 const LogoContainer: FC = ({ className }) => (
   <div className={className}>
-    <h1>Company Logo</h1>
-    <h2>Logo should be square, 100px size and in png, jpeg file format.</h2>
+    <h1>File Upload Demo</h1>
+    <h2>Google Drive API</h2>
   </div>
 )
 
